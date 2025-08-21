@@ -5,6 +5,18 @@ spring:
   jackson:
     serialization:
       write-dates-as-timestamps: false
+  application:
+    name: training-hours-service
 
 server:
   port: 8081
+
+jwt:
+  keys-path: secret
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
