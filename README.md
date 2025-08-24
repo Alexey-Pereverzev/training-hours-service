@@ -54,7 +54,7 @@ src/
 │   │   ├── repository/      # Mongo repositories
 │   │   └── service/         # Business logic layer
 │   └── resources/
-│       ├── application.yaml # and profile-specific yaml-files
+│       ├── application.yaml 
 │       └── logback.xml
 │           
 └── test/
