@@ -37,5 +37,6 @@ public class GlobalExceptionHandler {
     public ResponseEntity<String> handleGeneric(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body("Unexpected server error: " + ex.getMessage());
     }
+
 }
 

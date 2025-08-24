@@ -54,6 +54,7 @@ class AuthTokenFilterTest {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_TRAINER")));
     }
 
+
     @Test
     void whenDoFilterInternal_tokenInvalid_shouldNotAuthenticateUser() throws Exception {
         // given
@@ -69,6 +70,7 @@ class AuthTokenFilterTest {
         assertNull(SecurityContextHolder.getContext().getAuthentication());
     }
 
+
     @Test
     void whenDoFilterInternal_noToken_shouldJustContinue() throws Exception {
         // given
@@ -80,5 +82,6 @@ class AuthTokenFilterTest {
         verify(filterChain).doFilter(request, response);
         assertEquals(200, response.getStatus());
     }
+
 }
 

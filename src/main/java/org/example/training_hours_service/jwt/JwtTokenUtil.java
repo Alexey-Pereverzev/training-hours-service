@@ -29,7 +29,6 @@ public class JwtTokenUtil {
     }
 
 
-
     private PublicKey loadPublicKey(Path keysPath) throws Exception {
         byte[] publicKeyBytes = Files.readAllBytes(keysPath.resolve("public.key"));
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);

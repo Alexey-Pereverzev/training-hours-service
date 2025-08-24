@@ -12,7 +12,6 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -64,6 +63,7 @@ class TrainerMonthlyHoursServiceImplTest {
         assertEquals(2.0, saved.getMonthlyHoursByYear().get(2025).getFirst().getTotalHours());
     }
 
+
     @Test
     void whenUpdateTrainerHours_deleteExistingHours_shouldDecrease() {
         // given
@@ -88,6 +88,7 @@ class TrainerMonthlyHoursServiceImplTest {
         assertEquals(3.0, captor.getValue().getMonthlyHoursByYear().get(2025).getFirst().getTotalHours());
     }
 
+
     @Test
     void whenGetHoursForTrainerInMonth_noTrainer_shouldReturnZero() {
         // given
@@ -97,6 +98,7 @@ class TrainerMonthlyHoursServiceImplTest {
         // then
         assertEquals(0.0, hours);
     }
+
 
     @Test
     void whenGetHoursForTrainerInMonth_existingTrainer_shouldReturnHours() {
@@ -113,6 +115,7 @@ class TrainerMonthlyHoursServiceImplTest {
         assertEquals(7.5, hours);
     }
 
+
     @Test
     void whenClearAll_shouldInvokeDeleteAllOnRepository() {
         // when
@@ -120,5 +123,6 @@ class TrainerMonthlyHoursServiceImplTest {
         // then
         verify(repository).deleteAll();
     }
+
 }
 

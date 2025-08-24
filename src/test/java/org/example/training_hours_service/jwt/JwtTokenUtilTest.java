@@ -63,9 +63,9 @@ class JwtTokenUtilTest {
         }
     }
 
-    private String generateToken(String username, String role) {
+    private String generateToken(String role) {
         return JWT.create()
-                .withSubject(username)
+                .withSubject("Dina.Aliyeva")
                 .withClaim("role", role)
                 .withIssuedAt(new Date())
                 .withExpiresAt(Date.from(Instant.now().plusSeconds(60)))
@@ -76,7 +76,7 @@ class JwtTokenUtilTest {
     @Test
     void whenGenerateToken_validatedSuccessfully() {
         // given
-        String token = generateToken("Dina.Aliyeva", "ROLE_TRAINER");
+        String token = generateToken("ROLE_TRAINER");
         // when
         DecodedJWT decoded = jwtTokenUtil.validateAndParseToken(token);
         // then
@@ -88,7 +88,7 @@ class JwtTokenUtilTest {
     @Test
     void whenGetUsername_correctUsername() {
         // given
-        String token = generateToken("Dina.Aliyeva", "ROLE_TRAINEE");
+        String token = generateToken("ROLE_TRAINEE");
         // when
         String username = jwtTokenUtil.getUsername(token);
         // then
@@ -99,7 +99,7 @@ class JwtTokenUtilTest {
     @Test
     void whenGetRoleFromToken_correctRole() {
         // given
-        String token = generateToken("Dina.Aliyeva", "ROLE_TRAINEE");
+        String token = generateToken("ROLE_TRAINEE");
         // when
         String role = jwtTokenUtil.getRole(token);
         // then
@@ -114,4 +114,5 @@ class JwtTokenUtilTest {
         // when + then
         assertThrows(JWTVerificationException.class, () -> jwtTokenUtil.validateAndParseToken(invalidToken));
     }
+
 }

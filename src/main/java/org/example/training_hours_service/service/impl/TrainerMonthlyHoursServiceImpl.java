@@ -114,6 +114,7 @@ public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursServic
                 .orElse(0.0);
     }
 
+
     @Override
     public void clearAll() {
         repository.deleteAll();

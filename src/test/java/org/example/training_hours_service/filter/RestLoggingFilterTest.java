@@ -5,7 +5,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -14,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class RestLoggingFilterTest {
 
     private final RestLoggingFilter filter = new RestLoggingFilter();
+
 
     @Test
     void whenDoFilterInternal_requestProcessed_thenResponseBodyReturned() throws Exception {
@@ -32,6 +32,7 @@ class RestLoggingFilterTest {
         assertEquals("world", body);
     }
 
+
     @Test
     void whenDoFilterInternal_responseError_thenStillLogsAndReturnsBody() throws Exception {
         // given
@@ -44,5 +45,6 @@ class RestLoggingFilterTest {
         // then
         assertEquals(HttpServletResponse.SC_BAD_REQUEST, response.getStatus());
     }
+
 }
 

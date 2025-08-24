@@ -20,6 +20,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 
@@ -30,6 +31,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
 
     private final JwtTokenUtil jwtTokenUtil;
     private static final Logger log = LoggerFactory.getLogger(AuthTokenFilter.class.getName());
+    // check token being Base64URL (A-Z, a-z, 0-9, -, _, .)
+    private static final Pattern JWT_PATTERN = Pattern.compile("^[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+\\.[A-Za-z0-9_-]+$");
 
 
     @Override
@@ -37,6 +40,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                                     @NonNull FilterChain filterChain) throws ServletException, IOException {
         String token = getTokenFromJwt(request);
         if (token != null) {
+            if (!isValidJwtFormat(token)) {
+                log.warn("Rejected malformed JWT: {}", token);
+                response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Malformed JWT");
+                return;
+            }
             log.debug("Token found");
             try {
                 String username = jwtTokenUtil.getUsername(token);
@@ -54,6 +62,11 @@ public class AuthTokenFilter extends OncePerRequestFilter {
             }
         }
         filterChain.doFilter(request, response);
+    }
+
+
+    private boolean isValidJwtFormat(String token) {
+        return JWT_PATTERN.matcher(token).matches();
     }
 
 
