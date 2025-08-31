@@ -24,7 +24,6 @@ import java.util.Optional;
 public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursService {
 
     private final TrainerMonthlyHoursRepository repository;
-
     private static final Logger log = LoggerFactory.getLogger(TrainerMonthlyHoursServiceImpl.class);
 
 

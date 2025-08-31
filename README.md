@@ -1,4 +1,4 @@
-# Training Management System
+# Training Hours Service
 
 This is a modular Java 21 application built using **Spring Boot**. It manages trainer monthly hours using Spring dependency injection, annotations, and Mongo db database.
 
