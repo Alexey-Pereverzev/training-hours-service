@@ -85,26 +85,26 @@ class JwtTokenUtilTest {
     }
 
 
-    @Test
-    void whenGetUsername_correctUsername() {
-        // given
-        String token = generateToken("ROLE_TRAINEE");
-        // when
-        String username = jwtTokenUtil.getUsername(token);
-        // then
-        assertEquals("Dina.Aliyeva", username);
-    }
+//    @Test
+//    void whenGetUsername_correctUsername() {
+//        // given
+//        String token = generateToken("ROLE_TRAINEE");
+//        // when
+//        String username = jwtTokenUtil.getUsername(token);
+//        // then
+//        assertEquals("Dina.Aliyeva", username);
+//    }
 
 
-    @Test
-    void whenGetRoleFromToken_correctRole() {
-        // given
-        String token = generateToken("ROLE_TRAINEE");
-        // when
-        String role = jwtTokenUtil.getRole(token);
-        // then
-        assertEquals("ROLE_TRAINEE", role);
-    }
+//    @Test
+//    void whenGetRoleFromToken_correctRole() {
+//        // given
+//        String token = generateToken("ROLE_TRAINEE");
+//        // when
+//        String role = jwtTokenUtil.getRole(token);
+//        // then
+//        assertEquals("ROLE_TRAINEE", role);
+//    }
 
 
     @Test

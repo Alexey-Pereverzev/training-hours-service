@@ -45,4 +45,3 @@ class FixedTypeJsonMessageConverterTest {
         assertEquals(event.getType(), back.getType());
     }
 }
-

@@ -1,6 +1,7 @@
 package org.example.training_hours_service.filter;
 
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -42,13 +43,21 @@ public class AuthTokenFilter extends OncePerRequestFilter {
         if (token != null) {
             if (!isValidJwtFormat(token)) {
                 log.warn("Rejected malformed JWT: {}", token);
+                SecurityContextHolder.clearContext();
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Malformed JWT");
                 return;
             }
             log.debug("Token found");
             try {
-                String username = jwtTokenUtil.getUsername(token);
-                String role = jwtTokenUtil.getRole(token);
+                DecodedJWT jwt = jwtTokenUtil.validateAndParseToken(token);
+                String username = jwt.getSubject();
+                String role = jwt.getClaim("role").asString();
+                if (!StringUtils.hasText(role)) {
+                    log.warn("Token missing role claim, user={}", username);
+                    SecurityContextHolder.clearContext();
+                    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Missing role in JWT");
+                    return;
+                }
                 log.debug("Token is valid for user: {}", username);
                 List<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
                 UsernamePasswordAuthenticationToken authentication =
@@ -57,7 +66,8 @@ public class AuthTokenFilter extends OncePerRequestFilter {
                 log.debug("Authentication set for user: {}", username);
             } catch (JWTVerificationException ex) {
                 response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid JWT: " + ex.getMessage());
-                log.error("Could not set user authentication in security context", ex);
+                log.warn("Could not set user authentication in security context", ex);
+                SecurityContextHolder.clearContext();
                 return;
             }
         }

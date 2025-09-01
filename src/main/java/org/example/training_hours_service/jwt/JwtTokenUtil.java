@@ -38,11 +38,4 @@ public class JwtTokenUtil {
         return verifier.verify(token);
     }
 
-    public String getUsername(String token) {
-        return validateAndParseToken(token).getSubject();
-    }
-
-    public String getRole(String token) {
-        return validateAndParseToken(token).getClaim("role").asString();
-    }
 }

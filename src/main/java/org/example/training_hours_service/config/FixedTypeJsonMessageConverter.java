@@ -24,3 +24,4 @@ public class FixedTypeJsonMessageConverter extends MappingJackson2MessageConvert
         return this.targetType;                         // always deserialize as TrainerHoursEvent
     }
 }
+

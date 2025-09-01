@@ -39,7 +39,7 @@ public class TrainerMonthlyHoursController {
             @ApiResponse(responseCode = "200", description = "Trainer hours updated successfully",
                     content = @Content(mediaType = "text/plain")),
             @ApiResponse(responseCode = "400", description = "Invalid request"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "422", description = "Internal error")
     })
     public ResponseEntity<String> updateTrainingHours(
             @Parameter(description = "Training event details", required = true)
@@ -80,7 +80,7 @@ public class TrainerMonthlyHoursController {
     )
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "All trainer hours cleared"),
-            @ApiResponse(responseCode = "500", description = "Internal server error")
+            @ApiResponse(responseCode = "422", description = "Internal error")
     })
     public ResponseEntity<Void> clearAllTrainerHours() {
         service.clearAll();
