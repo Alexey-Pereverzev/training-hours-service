@@ -7,6 +7,15 @@ spring:
       write-dates-as-timestamps: false
   application:
     name: training-hours-service
+  activemq:
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
+    packages:
+      trust-all: true   # allow DTO serialization
+  jms:
+    listener:
+      concurrency: 1
 
 server:
   port: 8081
@@ -14,9 +23,3 @@ server:
 jwt:
   keys-path: secret
 
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-  instance:
-    prefer-ip-address: true

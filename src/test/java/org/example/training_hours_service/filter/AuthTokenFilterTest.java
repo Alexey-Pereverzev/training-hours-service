@@ -1,9 +1,11 @@
 package org.example.training_hours_service.filter;
 
-import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
+import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.http.HttpServletResponse;
 import org.example.training_hours_service.jwt.JwtTokenUtil;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -35,6 +39,11 @@ class AuthTokenFilterTest {
     @InjectMocks
     private AuthTokenFilter authTokenFilter;
 
+    @AfterEach
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
 
     @Test
     void whenDoFilterInternal_validToken_shouldAuthenticateUser() throws Exception {
@@ -42,32 +51,36 @@ class AuthTokenFilterTest {
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer valid.jwt.token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtTokenUtil.getUsername("valid.jwt.token")).thenReturn("Aliya.Aliyeva");
-        when(jwtTokenUtil.getRole("valid.jwt.token")).thenReturn("ROLE_TRAINER");
+        DecodedJWT decodedJWT = mock(DecodedJWT.class);
+        Claim roleClaim = mock(Claim.class);
+        when(decodedJWT.getSubject()).thenReturn("Aliya.Aliyeva");
+        when(decodedJWT.getClaim("role")).thenReturn(roleClaim);
+        when(roleClaim.asString()).thenReturn("ROLE_TRAINER");
+        when(jwtTokenUtil.validateAndParseToken("valid.jwt.token")).thenReturn(decodedJWT);
         // when
         authTokenFilter.doFilterInternal(request, response, filterChain);
         // then
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         assertNotNull(authentication);
         assertEquals("Aliya.Aliyeva", authentication.getName());
-        assertTrue(authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("ROLE_TRAINER")));
+        assertTrue(authentication.getAuthorities()
+                .stream().anyMatch(a -> a.getAuthority().equals("ROLE_TRAINER")));
+        verify(filterChain).doFilter(request, response);
     }
 
 
     @Test
-    void whenDoFilterInternal_tokenInvalid_shouldNotAuthenticateUser() throws Exception {
+    void whenDoFilterInternal_malformedToken_shouldNotAuthenticateUser() throws Exception {
         // given
         MockHttpServletRequest request = new MockHttpServletRequest();
         request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer invalid.token");
         MockHttpServletResponse response = new MockHttpServletResponse();
-        when(jwtTokenUtil.getUsername("invalid.token"))
-                .thenThrow(new JWTVerificationException("Invalid signature"));
         // when
         authTokenFilter.doFilterInternal(request, response, filterChain);
         // then
         assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
         assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain, never()).doFilter(request, response);
     }
 
 
@@ -80,6 +93,7 @@ class AuthTokenFilterTest {
         authTokenFilter.doFilterInternal(request, response, filterChain);
         // then
         verify(filterChain).doFilter(request, response);
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals(200, response.getStatus());
     }
 

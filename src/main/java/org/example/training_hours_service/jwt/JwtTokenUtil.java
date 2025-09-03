@@ -28,7 +28,6 @@ public class JwtTokenUtil {
                 .build();
     }
 
-
     private PublicKey loadPublicKey(Path keysPath) throws Exception {
         byte[] publicKeyBytes = Files.readAllBytes(keysPath.resolve("public.key"));
         X509EncodedKeySpec keySpec = new X509EncodedKeySpec(publicKeyBytes);
@@ -39,11 +38,4 @@ public class JwtTokenUtil {
         return verifier.verify(token);
     }
 
-    public String getUsername(String token) {
-        return validateAndParseToken(token).getSubject();
-    }
-
-    public String getRole(String token) {
-        return validateAndParseToken(token).getClaim("role").asString();
-    }
 }

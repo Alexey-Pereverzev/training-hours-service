@@ -7,6 +7,7 @@ import org.example.training_hours_service.entity.MonthSummary;
 import org.example.training_hours_service.entity.TrainerMonthlyHours;
 import org.example.training_hours_service.repository.TrainerMonthlyHoursRepository;
 import org.example.training_hours_service.service.TrainerMonthlyHoursService;
+import org.example.training_hours_service.util.ValidationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -24,13 +25,13 @@ import java.util.Optional;
 public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursService {
 
     private final TrainerMonthlyHoursRepository repository;
-
     private static final Logger log = LoggerFactory.getLogger(TrainerMonthlyHoursServiceImpl.class);
 
 
     @Override
     public void updateTrainerHours(TrainingUpdateRequest request) {
         log.info("Updating training hours for trainer: {}, action: {}", request.getTrainerUsername(), request.getActionType());
+        ValidationUtils.validateTrainingUpdateRequest(request);
 
         String username = request.getTrainerUsername();
         LocalDate date = request.getTrainingDate();
@@ -92,6 +93,7 @@ public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursServic
 
     @Override
     public double getHoursForTrainerInMonth(String username, int year, int month) {
+        ValidationUtils.validateUsername(username);
         log.info("Fetching hours for trainer: {} for {}/{}", username, month, year);
         Optional<TrainerMonthlyHours> trainerOpt = repository.findById(username);
         if (trainerOpt.isEmpty()) {
@@ -101,7 +103,6 @@ public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursServic
         TrainerMonthlyHours trainer = trainerOpt.get();
         Map<Integer, List<MonthSummary>> map = trainer.getMonthlyHoursByYear();
         List<MonthSummary> summaries = map.get(year);
-
         if (summaries == null) {
             log.info("No data for {} year for trainer {}", year, username);
             return 0.0;
@@ -120,3 +121,4 @@ public class TrainerMonthlyHoursServiceImpl implements TrainerMonthlyHoursServic
         repository.deleteAll();
     }
 }
+
