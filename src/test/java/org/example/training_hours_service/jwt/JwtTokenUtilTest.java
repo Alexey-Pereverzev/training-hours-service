@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
@@ -63,10 +64,10 @@ class JwtTokenUtilTest {
         }
     }
 
-    private String generateToken(String role) {
+    private String generateToken() {
         return JWT.create()
                 .withSubject("Dina.Aliyeva")
-                .withClaim("role", role)
+                .withClaim("role", "ROLE_TRAINER")
                 .withIssuedAt(new Date())
                 .withExpiresAt(Date.from(Instant.now().plusSeconds(60)))
                 .sign(algorithm);
@@ -76,7 +77,7 @@ class JwtTokenUtilTest {
     @Test
     void whenGenerateToken_validatedSuccessfully() {
         // given
-        String token = generateToken("ROLE_TRAINER");
+        String token = generateToken();
         // when
         DecodedJWT decoded = jwtTokenUtil.validateAndParseToken(token);
         // then
@@ -84,29 +85,7 @@ class JwtTokenUtilTest {
         assertEquals("ROLE_TRAINER", decoded.getClaim("role").asString());
     }
 
-
-//    @Test
-//    void whenGetUsername_correctUsername() {
-//        // given
-//        String token = generateToken("ROLE_TRAINEE");
-//        // when
-//        String username = jwtTokenUtil.getUsername(token);
-//        // then
-//        assertEquals("Dina.Aliyeva", username);
-//    }
-
-
-//    @Test
-//    void whenGetRoleFromToken_correctRole() {
-//        // given
-//        String token = generateToken("ROLE_TRAINEE");
-//        // when
-//        String role = jwtTokenUtil.getRole(token);
-//        // then
-//        assertEquals("ROLE_TRAINEE", role);
-//    }
-
-
+    
     @Test
     void whenValidateAndParseToken_invalidToken_shouldThrowException() {
         // given
@@ -114,5 +93,42 @@ class JwtTokenUtilTest {
         // when + then
         assertThrows(JWTVerificationException.class, () -> jwtTokenUtil.validateAndParseToken(invalidToken));
     }
+
+
+    @Test
+    void whenPublicKeyFileMissing_shouldThrowException() {
+        // given
+        Path wrongDir = tempDir.resolve("nonexistent");
+        // when + then
+        assertThrows(Exception.class, () -> new JwtTokenUtil(wrongDir.toString()));
+    }
+
+    @Test
+    void whenValidateAndParseToken_tokenExpired_shouldThrowJWTVerificationException() {
+        // given
+        String expiredToken = JWT.create()
+                .withSubject("Expired.User")
+                .withClaim("role", "ROLE_TRAINEE")
+                .withExpiresAt(Date.from(Instant.now().minusSeconds(60)))
+                .sign(algorithm);
+        // when + then
+        assertThrows(JWTVerificationException.class, () -> jwtTokenUtil.validateAndParseToken(expiredToken));
+    }
+
+    @Test
+    void whenValidateAndParseToken_tokenWithoutRole_shouldReturnNullForRoleClaim() {
+        // given
+        String token = JWT.create()
+                .withSubject("User.WithoutRole")
+                .withIssuedAt(new Date())
+                .withExpiresAt(Date.from(Instant.now().plusSeconds(60)))
+                .sign(algorithm);
+        // when
+        DecodedJWT decoded = jwtTokenUtil.validateAndParseToken(token);
+        // then
+        assertEquals("User.WithoutRole", decoded.getSubject());
+        assertNull(decoded.getClaim("role").asString());
+    }
+
 
 }

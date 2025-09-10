@@ -2,6 +2,7 @@ spring:
   data:
     mongodb:
       uri: mongodb://localhost:27017/training-hours
+      auto-index-creation: true
   jackson:
     serialization:
       write-dates-as-timestamps: false

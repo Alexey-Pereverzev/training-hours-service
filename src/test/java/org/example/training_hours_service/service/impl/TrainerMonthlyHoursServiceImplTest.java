@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -37,14 +38,15 @@ class TrainerMonthlyHoursServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        request = new TrainingUpdateRequest();
-        request.setTrainerUsername("Nina.Petrova");
-        request.setTrainerFirstName("Nina");
-        request.setTrainerLastName("Petrova");
-        request.setActive(true);
-        request.setTrainingDate(LocalDate.of(2025, 1, 15));
-        request.setTrainingDuration(120); // 2 часа
-        request.setActionType(ActionType.ADD);
+        request = TrainingUpdateRequest.builder()
+                .trainerUsername("Nina.Petrova")
+                .trainerFirstName("Nina")
+                .trainerLastName("Petrova")
+                .active(true)
+                .trainingDate(LocalDate.of(2025, 1, 15))
+                .trainingDuration(120)              //  2h
+                .actionType(ActionType.ADD)
+                .build();
     }
 
 
@@ -122,6 +124,95 @@ class TrainerMonthlyHoursServiceImplTest {
         service.clearAll();
         // then
         verify(repository).deleteAll();
+    }
+
+
+    @Test
+    void whenUpdateTrainerHours_addToExistingMonth_shouldIncrease() {
+        // given
+        MonthSummary summary = new MonthSummary(1, 2.0); // было 2 часа
+        TrainerMonthlyHours trainer = TrainerMonthlyHours.builder()
+                .username("Nina.Petrova")
+                .monthlyHoursByYear(new HashMap<>(Map.of(2025, new ArrayList<>(List.of(summary)))))
+                .build();
+        when(repository.findById("Nina.Petrova")).thenReturn(Optional.of(trainer));
+        // ADD 1 час
+        request.setTrainingDuration(60);
+        request.setActionType(ActionType.ADD);
+        // when
+        service.updateTrainerHours(request);
+        // then
+        ArgumentCaptor<TrainerMonthlyHours> captor = ArgumentCaptor.forClass(TrainerMonthlyHours.class);
+        verify(repository).save(captor.capture());
+        assertEquals(3.0, captor.getValue().getMonthlyHoursByYear().get(2025).getFirst().getTotalHours());
+    }
+
+
+    @Test
+    void whenUpdateTrainerHours_deleteMoreThanAvailable_shouldResetToZero() {
+        // given
+        MonthSummary summary = new MonthSummary(1, 1.0); // было 1 час
+        TrainerMonthlyHours trainer = TrainerMonthlyHours.builder()
+                .username("Nina.Petrova")
+                .monthlyHoursByYear(new HashMap<>(Map.of(2025, new ArrayList<>(List.of(summary)))))
+                .build();
+        when(repository.findById("Nina.Petrova")).thenReturn(Optional.of(trainer));
+        request.setActionType(ActionType.DELETE);
+        request.setTrainingDuration(120); // пытаемся удалить 2 часа
+        // when
+        service.updateTrainerHours(request);
+        // then
+        ArgumentCaptor<TrainerMonthlyHours> captor = ArgumentCaptor.forClass(TrainerMonthlyHours.class);
+        verify(repository).save(captor.capture());
+        assertEquals(0.0, captor.getValue().getMonthlyHoursByYear().get(2025).getFirst().getTotalHours());
+    }
+
+
+    @Test
+    void whenUpdateTrainerHours_deleteFromNonExistingMonth_shouldNotCreateMonth() {
+        // given
+        TrainerMonthlyHours trainer = TrainerMonthlyHours.builder()
+                .username("Nina.Petrova")
+                .monthlyHoursByYear(new HashMap<>(Map.of(2025, new ArrayList<>())))
+                .build();
+        when(repository.findById("Nina.Petrova")).thenReturn(Optional.of(trainer));
+        request.setActionType(ActionType.DELETE);
+        // when
+        service.updateTrainerHours(request);
+        // then
+        verify(repository).save(trainer);
+        assertTrue(trainer.getMonthlyHoursByYear().get(2025).isEmpty());
+    }
+
+
+    @Test
+    void whenGetHoursForTrainerInMonth_noDataForYear_shouldReturnZero() {
+        // given
+        TrainerMonthlyHours trainer = TrainerMonthlyHours.builder()
+                .username("Nina.Petrova")
+                .monthlyHoursByYear(new HashMap<>()) // пусто
+                .build();
+        when(repository.findById("Nina.Petrova")).thenReturn(Optional.of(trainer));
+        // when
+        double hours = service.getHoursForTrainerInMonth("Nina.Petrova", 2025, 1);
+        // then
+        assertEquals(0.0, hours);
+    }
+
+
+    @Test
+    void whenGetHoursForTrainerInMonth_noDataForMonth_shouldReturnZero() {
+        // given
+        MonthSummary summary = new MonthSummary(2, 5.0); // февраль
+        TrainerMonthlyHours trainer = TrainerMonthlyHours.builder()
+                .username("Nina.Petrova")
+                .monthlyHoursByYear(Map.of(2025, List.of(summary)))
+                .build();
+        when(repository.findById("Nina.Petrova")).thenReturn(Optional.of(trainer));
+        // when
+        double hours = service.getHoursForTrainerInMonth("Nina.Petrova", 2025, 1); // январь
+        // then
+        assertEquals(0.0, hours);
     }
 
 }
