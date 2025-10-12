@@ -1,12 +1,14 @@
 package org.example.training_hours_service.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
 
 
 @Data
+@Builder
 @Schema(description = "Event for updating trainer's monthly hours")
 public class TrainingUpdateRequest {
 

@@ -29,7 +29,7 @@ class FixedTypeJsonMessageConverterTest {
         // given
         TrainerHoursEvent event = TrainerHoursEvent.builder()
                 .txId("tx-1").type(EventType.UPDATE)
-                .trainingUpdate(new TrainingUpdateRequest())
+                .trainingUpdate(TrainingUpdateRequest.builder().build())
                 .build();
         Session session = mock(Session.class);          // mock JMS Session
         when(session.createTextMessage(anyString())).thenAnswer(i -> {

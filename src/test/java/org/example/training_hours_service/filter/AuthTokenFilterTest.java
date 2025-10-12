@@ -1,5 +1,6 @@
 package org.example.training_hours_service.filter;
 
+import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import jakarta.servlet.FilterChain;
@@ -95,6 +96,63 @@ class AuthTokenFilterTest {
         verify(filterChain).doFilter(request, response);
         assertNull(SecurityContextHolder.getContext().getAuthentication());
         assertEquals(200, response.getStatus());
+    }
+
+
+    @Test
+    void whenDoFilterInternal_tokenWithoutRole_shouldReturnUnauthorized() throws Exception {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer valid.jwt.token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        DecodedJWT decodedJWT = mock(DecodedJWT.class);
+        Claim roleClaim = mock(Claim.class);
+        when(decodedJWT.getSubject()).thenReturn("Aliya.Aliyeva");
+        when(decodedJWT.getClaim("role")).thenReturn(roleClaim);
+        when(roleClaim.asString()).thenReturn(null);
+        when(jwtTokenUtil.validateAndParseToken("valid.jwt.token")).thenReturn(decodedJWT);
+        // when
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+        // then
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+    @Test
+    void whenDoFilterInternal_invalidJwt_shouldReturnUnauthorized() throws Exception {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer bad.jwt.token");
+        MockHttpServletResponse response = new MockHttpServletResponse();
+        when(jwtTokenUtil.validateAndParseToken("bad.jwt.token"))
+                .thenThrow(new JWTVerificationException("Signature invalid"));
+        // when
+        authTokenFilter.doFilterInternal(request, response, filterChain);
+        // then
+        assertEquals(HttpServletResponse.SC_UNAUTHORIZED, response.getStatus());
+        assertNull(SecurityContextHolder.getContext().getAuthentication());
+        verify(filterChain, never()).doFilter(request, response);
+    }
+
+
+    @Test
+    void whenGetTokenFromJwt_shouldExtractTokenCorrectly() {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Bearer my.jwt.token");
+        // when + then
+        assertEquals("my.jwt.token", authTokenFilter.getTokenFromJwt(request));
+    }
+
+
+    @Test
+    void whenGetTokenFromJwt_invalidHeader_shouldReturnNull() {
+        // given
+        MockHttpServletRequest request = new MockHttpServletRequest();
+        request.addHeader(HttpHeaders.AUTHORIZATION, "Basic abc123");
+        // when + then
+        assertNull(authTokenFilter.getTokenFromJwt(request));
     }
 
 }
