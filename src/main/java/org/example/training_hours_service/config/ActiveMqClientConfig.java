@@ -3,12 +3,16 @@ package org.example.training_hours_service.config;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.activemq.RedeliveryPolicy;
 import org.springframework.boot.autoconfigure.jms.activemq.ActiveMQProperties;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
+import org.springframework.jms.annotation.EnableJms;
 
 
 @Configuration
+@EnableJms
+@EnableConfigurationProperties(ActiveMQProperties.class)
 public class ActiveMqClientConfig {
 
     @Bean

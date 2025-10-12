@@ -1,6 +1,6 @@
 # Training Hours Service
 
-This is a modular Java 21 application built using **Spring Boot**. It manages trainer monthly hours using Spring dependency injection, annotations, and Mongo db database.
+This is a modular Java 21 / Spring Boot 3.5 application built using **Spring Boot**. It manages trainer monthly hours using Spring dependency injection, annotations, Mongo db database, JWT, ActiveMQ and Swagger.
 
 ## Features
 
@@ -11,8 +11,7 @@ This is a modular Java 21 application built using **Spring Boot**. It manages tr
 - **Swagger UI** plugged in
 - Structured logging at multiple levels (`INFO`, `WARNING`, `SEVERE`)
 - Unit tests with **JUnit 5** and **Mockito**
-- RestTemplate for microservice communication
-- Eureka for service discovery
+- ActiveMQ for microservice communication
 
 
 ---
@@ -32,8 +31,8 @@ This is a modular Java 21 application built using **Spring Boot**. It manages tr
 | Authentication    | JWT-tokens                |
 | Storage           | Mongo Db                  |
 | API documentation | Swagger                   |
-| Microservice API  | RestTemplate              |
-| Discovery service | Eureka                    |
+| Messaging         | ActiveMQ                  |
+| Containerization  | Docker                    |
 
 ---
 
@@ -52,13 +51,15 @@ src/
 │   │   ├── filter/          # Security and logging filters
 │   │   ├── jwt/             # JWT utils
 │   │   ├── repository/      # Mongo repositories
-│   │   └── service/         # Business logic layer
+│   │   ├── service/         # Business logic layer
+│   │   └── util/            # Validation util
 │   └── resources/
 │       ├── application.yaml 
 │       └── logback.xml
 │           
 └── test/
     └── java/org.example.trainingapp/
+        ├── config/          # Unit tests for JSON converter
         ├── filter/          # Unit tests for filter classes
         ├── jwt/             # Unit tests for jwt util classes
         └── service/         # Unit tests for service classes
@@ -82,18 +83,26 @@ cd training-hours-service
 public.key
 ```
 
-### 3. Run eureka service 
-
-### 4. Run the application 
+### 3. Tests (JUnit):
 
 ```bash
-./gradlew bootRun
+./gradlew test
 ```
 
-### 6. Swagger UI is available at:
+### 4. Run the application: run by docker-compose.yml from trainingapp repository
+
+### 5. Swagger UI is available at:
 
 ```bash
 http://localhost:8081/swagger-ui/index.html
+```
+
+### 6. Logs:
+
+```bash
+docker compose logs -f training-hours-service   # training-hours-service
+docker compose logs -f activemq                 # ActiveMq
+docker compose logs -f mongo                    # Mongo
 ```
 
 ---
@@ -105,6 +114,7 @@ http://localhost:8081/swagger-ui/index.html
 ```
 
 Test coverage includes:
+- FixedTypeJsonMessageConverter
 - AuthTokenFilter
 - RestLoggingFilter
 - TransactionIdFilter
@@ -148,55 +158,23 @@ The project incorporates several established design patterns:
 
 ---
 
-### Task implementation for module 7:
+### Task implementation for module 10:
 
-**Based on the codebase created during the previous module, implement follow functionality:**
+**Tasks:**
 
-1. Implement separate Spring boot Application (Microservice).
+1. Create Dockerfile for Report microservice with disabled integrations. Create Docker images from the files. Run application.
 ```
-solution: training-hours-service
-```
-
-2. Application should implement REST endpoint to accept trainer's workload.
-```
-solution: TrainerMonthlyHoursController.updateTrainingHours(), dto class is TrainingUpdateRequest
+solution: Dockerfile. Can run with docker run command.
 ```
 
-3. Implement service function corresponding to mentioned below REST endpoint. Service should calculate as in-memory 
-saved structure (in memory DB) trainer's monthly summary of the provided trainings.
+2. Setup network configuration for Docker. Run application with enabled integrations with DB/queue.
 ```
-solution: class TrainingMonthlyHours
-```
-
-4. Implement discovery module according to guide Eureka Discovery Service.
-```
-solution: separate eureka-service, discovery configured in application.yaml 
+solution: docker-compose.yml. Run: docker compose up -d --build from /trainingapp folder
 ```
 
-5. Implement Authorization − Bearer token for Microservices integration Use JWT token implementation.
+3. Start a shell in the running Docker containers and check the application logs.
 ```
-solution: AuthTokenFilter + JwtTokenUtil
-```
-
-6. Two levels of logging should be implemented - transactions and each operation transaction level - which endpoint was 
-called, which request came and the service response - 200 or error and response message + at this level, a transactionId 
-is generated, by which you can track all operations for this transaction the same transactionId can later be passed 
-to downstream services.
-```
-solution: classes TransactionLoggingAspect + RestLoggingFilter + TransactionIdFilter
-```
-
-
-**Notes:**
-1. For REST API implementation use second level of Richardson maturity model.
-```
-solution: URIs are resource-oriented, HTTP methods have correct semantics, response statuses are correct.
-```
-
-2. In addition, when requesting the number of training hours from any of the trainers in a particular month, the 
-microservice retrieves this data from the database and returns it to the requester.
-```
-solution: TrainerMonthlyHoursController.getTrainerHours()
+solution: docker compose logs -f training_hours_service
 ```
 
 ---
@@ -204,6 +182,6 @@ solution: TrainerMonthlyHoursController.getTrainerHours()
 ## Author
 
 Aleksei Pereverzev  
-Developed as part of a Microservices learning module.
+Developed as part of a Docker learning module.
 
 
